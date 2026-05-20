@@ -1,0 +1,12 @@
+{
+  "name": "messenger-whatsapp-crm-netlify",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/ensure-public.mjs"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^9.1.2"
+  }
+}

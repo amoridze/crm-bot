@@ -1,0 +1,2 @@
+/api/* /.netlify/functions/crm/api/:splat 200
+/webhooks/meta /.netlify/functions/crm/webhooks/meta 200

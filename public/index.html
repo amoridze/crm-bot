@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Inbox CRM MVP</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <header class="brand">
+          <div>
+            <p>AI Inbox</p>
+            <h1>CRM переписок</h1>
+          </div>
+          <button id="refreshButton" class="icon-button" type="button" title="Обновить">↻</button>
+        </header>
+
+        <div class="filters" aria-label="Фильтр каналов">
+          <button class="active" type="button" data-channel="">Все</button>
+          <button type="button" data-channel="facebook">Facebook</button>
+          <button type="button" data-channel="whatsapp">WhatsApp</button>
+        </div>
+
+        <form id="simulateForm" class="simulate">
+          <label>
+            Канал
+            <select name="channel">
+              <option value="facebook">Facebook</option>
+              <option value="whatsapp">WhatsApp</option>
+            </select>
+          </label>
+          <label>
+            Тестовое входящее
+            <input name="text" value="Здравствуйте, хочу узнать условия" />
+          </label>
+          <button type="submit">Симулировать</button>
+        </form>
+
+        <div id="conversationList" class="conversation-list"></div>
+      </aside>
+
+      <main class="workspace">
+        <section id="emptyState" class="empty-state">
+          <h2>Выберите диалог</h2>
+          <p>Входящие из Facebook Messenger и WhatsApp будут появляться в общем списке.</p>
+        </section>
+
+        <section id="conversationPanel" class="conversation-panel" hidden>
+          <header class="conversation-header">
+            <div>
+              <p id="clientChannel"></p>
+              <h2 id="clientName"></h2>
+              <span id="clientId"></span>
+            </div>
+            <div class="controls">
+              <label class="select-label">
+                Статус
+                <select id="statusSelect">
+                  <option value="new">Новый</option>
+                  <option value="in_progress">В работе</option>
+                  <option value="ai_active">Отвечает ИИ</option>
+                  <option value="handoff">Передан оператору</option>
+                  <option value="closed">Закрыт</option>
+                </select>
+              </label>
+              <label class="switch">
+                <input id="aiToggle" type="checkbox" />
+                <span>ИИ</span>
+              </label>
+            </div>
+          </header>
+
+          <div class="client-card">
+            <dl>
+              <div>
+                <dt>Канал</dt>
+                <dd id="cardChannel"></dd>
+              </div>
+              <div>
+                <dt>Клиент</dt>
+                <dd id="cardUser"></dd>
+              </div>
+              <div>
+                <dt>Обновлен</dt>
+                <dd id="cardUpdated"></dd>
+              </div>
+            </dl>
+          </div>
+
+          <div id="messages" class="messages"></div>
+
+          <form id="replyForm" class="reply-form">
+            <textarea name="text" rows="3" placeholder="Ответ оператора"></textarea>
+            <button type="submit">Отправить</button>
+          </form>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
