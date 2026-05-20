@@ -28,6 +28,21 @@ https://YOUR-NETLIFY-SITE.netlify.app/
 
 For a quick check without Meta, open the UI and use the "simulate" form.
 
+Dialog storage check:
+
+```text
+https://YOUR-NETLIFY-SITE.netlify.app/api/storage
+```
+
+The response should include:
+
+```json
+{
+  "provider": "netlify-blobs",
+  "persistent": true
+}
+```
+
 Recommended deploy options:
 
 ```powershell

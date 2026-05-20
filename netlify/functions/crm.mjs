@@ -34,6 +34,17 @@ export async function handler(event) {
 }
 
 async function handleApi(event, method, path) {
+  if (path === "/api/storage" && method === "GET") {
+    const store = await getBlobStore();
+    const db = await readDb();
+    return json(200, {
+      provider: store ? "netlify-blobs" : "memory",
+      persistent: Boolean(store),
+      conversations: db.conversations.length,
+      messages: db.messages.length
+    });
+  }
+
   if (path === "/api/conversations" && method === "GET") {
     const db = await readDb();
     const channel = event.queryStringParameters?.channel || "";
@@ -364,6 +375,9 @@ async function getBlobStore() {
     const { getStore } = await import("@netlify/blobs");
     return getStore("crm-db");
   } catch (error) {
+    if (process.env.NETLIFY) {
+      throw new Error(`Persistent dialog storage is unavailable: ${error.message}`);
+    }
     console.warn("Netlify Blobs unavailable, using in-memory storage.", error.message);
     return null;
   }
