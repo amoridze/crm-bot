@@ -44,6 +44,11 @@ The response should include:
 }
 ```
 
+If Netlify returns an error saying Blobs needs `siteID` and `token`, add:
+
+- `NETLIFY_SITE_ID` - Netlify Project ID from Project configuration > General > Project information.
+- `NETLIFY_BLOBS_TOKEN` - Netlify personal access token from User settings > Applications > Personal access tokens.
+
 Recommended deploy options:
 
 ```powershell

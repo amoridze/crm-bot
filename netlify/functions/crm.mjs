@@ -407,6 +407,11 @@ async function writeDb(db) {
 
 async function getBlobStore() {
   try {
+    const siteID = process.env.NETLIFY_SITE_ID;
+    const token = process.env.NETLIFY_BLOBS_TOKEN || process.env.NETLIFY_AUTH_TOKEN;
+    if (siteID && token) {
+      return getStore("crm-db", { siteID, token });
+    }
     return getStore("crm-db");
   } catch (error) {
     if (allowMemoryStorage) {
