@@ -33,6 +33,11 @@ let activeConversation = null;
 
 async function loadConversations() {
   const response = await fetch(`/api/conversations${activeChannel ? `?channel=${activeChannel}` : ""}`);
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: "Could not load conversations" }));
+    list.innerHTML = `<p class="muted">${escapeHtml(error.error || "Could not load conversations")}</p>`;
+    return;
+  }
   const data = await response.json();
   conversations = data.conversations || [];
   renderList();
@@ -67,6 +72,11 @@ function renderList() {
 async function openConversation(id) {
   activeId = id;
   const response = await fetch(`/api/conversations/${id}`);
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: "Could not load conversation" }));
+    alert(error.error || "Could not load conversation");
+    return;
+  }
   const data = await response.json();
   activeConversation = data.conversation;
   emptyState.hidden = true;

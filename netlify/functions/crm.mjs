@@ -5,7 +5,7 @@ const graphVersion = process.env.META_GRAPH_VERSION || "v23.0";
 const statusLabels = new Set(["new", "in_progress", "ai_active", "handoff", "closed"]);
 const channelLabels = new Set(["facebook", "whatsapp"]);
 const memoryDb = { conversations: [], messages: [] };
-const isNetlifyRuntime = Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY);
+const allowMemoryStorage = process.env.ALLOW_MEMORY_STORAGE === "true";
 
 export async function handler(event) {
   try {
@@ -37,14 +37,22 @@ export async function handler(event) {
 
 async function handleApi(event, method, path) {
   if (path === "/api/storage" && method === "GET") {
-    const store = await getBlobStore();
-    const db = await readDb();
-    return json(200, {
-      provider: store ? "netlify-blobs" : "memory",
-      persistent: Boolean(store),
-      conversations: db.conversations.length,
-      messages: db.messages.length
-    });
+    try {
+      const store = await getBlobStore();
+      const db = await readDb();
+      return json(200, {
+        provider: store ? "netlify-blobs" : "memory",
+        persistent: Boolean(store),
+        conversations: db.conversations.length,
+        messages: db.messages.length
+      });
+    } catch (error) {
+      return json(500, {
+        provider: "unavailable",
+        persistent: false,
+        error: error.message
+      });
+    }
   }
 
   if (path === "/api/conversations" && method === "GET") {
@@ -371,7 +379,10 @@ async function postMeta(url, body, token) {
 
 async function readDb() {
   const store = await getBlobStore();
-  if (!store) return memoryDb;
+  if (!store) {
+    if (allowMemoryStorage) return memoryDb;
+    throw new Error("Persistent dialog storage is not configured. Set up Netlify Blobs or set ALLOW_MEMORY_STORAGE=true for temporary tests.");
+  }
 
   const db = await store.get("db", { type: "json" });
   if (db?.conversations && db?.messages) return db;
@@ -384,6 +395,9 @@ async function readDb() {
 async function writeDb(db) {
   const store = await getBlobStore();
   if (!store) {
+    if (!allowMemoryStorage) {
+      throw new Error("Persistent dialog storage is not configured. Refusing to save dialogs in memory.");
+    }
     memoryDb.conversations = db.conversations;
     memoryDb.messages = db.messages;
     return;
@@ -395,11 +409,11 @@ async function getBlobStore() {
   try {
     return getStore("crm-db");
   } catch (error) {
-    if (isNetlifyRuntime) {
-      throw new Error(`Persistent dialog storage is unavailable: ${error.message}`);
+    if (allowMemoryStorage) {
+      console.warn("Netlify Blobs unavailable, using in-memory storage.", error.message);
+      return null;
     }
-    console.warn("Netlify Blobs unavailable, using in-memory storage.", error.message);
-    return null;
+    throw new Error(`Persistent dialog storage is unavailable: ${error.message}`);
   }
 }
 
