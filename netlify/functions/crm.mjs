@@ -91,7 +91,13 @@ async function handleApi(event, method, path) {
     const text = String(body.text || "").trim();
     if (!text) return json(400, { error: "Reply text is required" });
 
-    await sendChannelMessage(conversation, text);
+    const sendResult = await sendChannelMessage(conversation, text);
+    if (!sendResult.ok) {
+      return json(502, {
+        error: "Message was not sent",
+        details: sendResult.error
+      });
+    }
     addMessage(db, conversation, {
       direction: "out",
       sender: "operator",
@@ -316,8 +322,10 @@ function shouldHandoff(inboundText) {
 
 async function sendChannelMessage(conversation, messageText) {
   if (conversation.channel === "facebook") {
-    if (!process.env.FB_PAGE_ACCESS_TOKEN) return;
-    await postMeta(`https://graph.facebook.com/${graphVersion}/me/messages?access_token=${process.env.FB_PAGE_ACCESS_TOKEN}`, {
+    if (!process.env.FB_PAGE_ACCESS_TOKEN) {
+      return { ok: false, error: "FB_PAGE_ACCESS_TOKEN is missing" };
+    }
+    return await postMeta(`https://graph.facebook.com/${graphVersion}/me/messages?access_token=${process.env.FB_PAGE_ACCESS_TOKEN}`, {
       recipient: { id: conversation.userId },
       messaging_type: "RESPONSE",
       message: { text: messageText }
@@ -325,14 +333,21 @@ async function sendChannelMessage(conversation, messageText) {
   }
 
   if (conversation.channel === "whatsapp") {
-    if (!process.env.WHATSAPP_ACCESS_TOKEN || !process.env.WHATSAPP_PHONE_NUMBER_ID) return;
-    await postMeta(`https://graph.facebook.com/${graphVersion}/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+    if (!process.env.WHATSAPP_ACCESS_TOKEN) {
+      return { ok: false, error: "WHATSAPP_ACCESS_TOKEN is missing" };
+    }
+    if (!process.env.WHATSAPP_PHONE_NUMBER_ID) {
+      return { ok: false, error: "WHATSAPP_PHONE_NUMBER_ID is missing" };
+    }
+    return await postMeta(`https://graph.facebook.com/${graphVersion}/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`, {
       messaging_product: "whatsapp",
       to: conversation.userId,
       type: "text",
       text: { body: messageText, preview_url: false }
     }, process.env.WHATSAPP_ACCESS_TOKEN);
   }
+
+  return { ok: false, error: `Unsupported channel: ${conversation.channel}` };
 }
 
 async function postMeta(url, body, token) {
@@ -344,8 +359,11 @@ async function postMeta(url, body, token) {
     body: JSON.stringify(body)
   });
   if (!result.ok) {
-    console.error("Meta send error", result.status, await result.text());
+    const errorText = await result.text();
+    console.error("Meta send error", result.status, errorText);
+    return { ok: false, error: `Meta error ${result.status}: ${errorText}` };
   }
+  return { ok: true, data: await result.json().catch(() => ({})) };
 }
 
 async function readDb() {

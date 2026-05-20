@@ -121,11 +121,16 @@ replyForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const text = new FormData(replyForm).get("text").trim();
   if (!text || !activeConversation) return;
-  await fetch(`/api/conversations/${activeConversation.id}/reply`, {
+  const response = await fetch(`/api/conversations/${activeConversation.id}/reply`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ text })
   });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: "Reply failed" }));
+    alert(`${error.error || "Reply failed"}\n${error.details || ""}`.trim());
+    return;
+  }
   replyForm.reset();
   await loadConversations();
 });
