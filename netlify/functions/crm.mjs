@@ -270,8 +270,9 @@ async function buildAiReply(messages) {
   });
 
   if (!result.ok) {
-    console.error("OpenAI error", await result.text());
-    return "I cannot prepare an automatic answer right now. I will pass the conversation to a human operator.";
+    const errorText = await result.text();
+    console.error("OpenAI error", result.status, errorText);
+    return `OpenAI error ${result.status}. Check Netlify logs and environment variables.`;
   }
 
   const data = await result.json();
