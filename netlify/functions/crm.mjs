@@ -339,9 +339,10 @@ async function sendChannelMessage(conversation, messageText) {
     if (!process.env.WHATSAPP_PHONE_NUMBER_ID) {
       return { ok: false, error: "WHATSAPP_PHONE_NUMBER_ID is missing" };
     }
+    const to = process.env.WHATSAPP_TEST_RECIPIENT_PHONE || conversation.userId;
     return await postMeta(`https://graph.facebook.com/${graphVersion}/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`, {
       messaging_product: "whatsapp",
-      to: conversation.userId,
+      to,
       type: "text",
       text: { body: messageText, preview_url: false }
     }, process.env.WHATSAPP_ACCESS_TOKEN);

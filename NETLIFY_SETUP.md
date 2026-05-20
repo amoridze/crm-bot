@@ -10,6 +10,7 @@ After deploy, set these environment variables in Netlify:
 - `FB_PAGE_ACCESS_TOKEN` - Facebook Page access token for Messenger replies.
 - `WHATSAPP_ACCESS_TOKEN` - WhatsApp Cloud API access token.
 - `WHATSAPP_PHONE_NUMBER_ID` - WhatsApp Cloud API phone number ID.
+- `WHATSAPP_TEST_RECIPIENT_PHONE` - optional test recipient phone from Meta, digits only.
 - `OPENAI_API_KEY` - optional. If empty, the bot returns demo AI replies.
 - `OPENAI_MODEL` - OpenAI model name.
 - `AI_SYSTEM_PROMPT` - base support-agent prompt.
