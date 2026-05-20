@@ -1,9 +1,11 @@
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
+import { getStore } from "@netlify/blobs";
 
 const graphVersion = process.env.META_GRAPH_VERSION || "v23.0";
 const statusLabels = new Set(["new", "in_progress", "ai_active", "handoff", "closed"]);
 const channelLabels = new Set(["facebook", "whatsapp"]);
 const memoryDb = { conversations: [], messages: [] };
+const isNetlifyRuntime = Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY);
 
 export async function handler(event) {
   try {
@@ -391,10 +393,9 @@ async function writeDb(db) {
 
 async function getBlobStore() {
   try {
-    const { getStore } = await import("@netlify/blobs");
     return getStore("crm-db");
   } catch (error) {
-    if (process.env.NETLIFY) {
+    if (isNetlifyRuntime) {
       throw new Error(`Persistent dialog storage is unavailable: ${error.message}`);
     }
     console.warn("Netlify Blobs unavailable, using in-memory storage.", error.message);
