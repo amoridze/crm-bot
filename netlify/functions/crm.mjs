@@ -182,7 +182,7 @@ async function processInbound({ channel, userId, userName, text: inboundText, ex
     conversation.status = "ai_active";
     const messages = db.messages.filter((msg) => msg.conversationId === conversation.id);
     const aiReply = await buildAiReply(messages);
-    const needsHuman = shouldHandoff(inboundText, aiReply);
+    const needsHuman = shouldHandoff(inboundText);
 
     if (needsHuman) {
       const handoffText = "I will pass this conversation to a human operator for a more accurate answer.";
@@ -278,8 +278,8 @@ async function buildAiReply(messages) {
   return data.choices?.[0]?.message?.content?.trim() || "Please share a few more details.";
 }
 
-function shouldHandoff(inboundText, aiReply) {
-  const textToCheck = `${inboundText} ${aiReply}`.toLowerCase();
+function shouldHandoff(inboundText) {
+  const textToCheck = inboundText.toLowerCase();
   return [
     "оператор",
     "человек",
