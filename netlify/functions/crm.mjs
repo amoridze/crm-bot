@@ -50,6 +50,8 @@ async function handleApi(event, method, path) {
       return json(500, {
         provider: "unavailable",
         persistent: false,
+        hasSiteID: Boolean(process.env.NETLIFY_SITE_ID),
+        hasToken: Boolean(process.env.NETLIFY_BLOBS_TOKEN || process.env.NETLIFY_AUTH_TOKEN),
         error: error.message
       });
     }
@@ -410,7 +412,7 @@ async function getBlobStore() {
     const siteID = process.env.NETLIFY_SITE_ID;
     const token = process.env.NETLIFY_BLOBS_TOKEN || process.env.NETLIFY_AUTH_TOKEN;
     if (siteID && token) {
-      return getStore("crm-db", { siteID, token });
+      return getStore({ name: "crm-db", siteID, token });
     }
     return getStore("crm-db");
   } catch (error) {
